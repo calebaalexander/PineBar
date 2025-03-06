@@ -99,8 +99,7 @@ metric_sort = st.sidebar.selectbox(
 
 # Function to generate data
 def generate_data(option):
-    """
-    Generate synthetic data for Pine Bar analytics
+    """Generate synthetic data for Pine Bar analytics
     
     Parameters:
     option (str): Data period option, one of "2023 Full Year", "2024 Full Year", or "2025 (up to March 5)"
@@ -244,8 +243,7 @@ def generate_data(option):
 
 # Function to create metrics row
 def create_metrics_row(df):
-    """
-    Create a row of key metrics cards
+    """Create a row of key metrics cards
     
     Parameters:
     df (pandas.DataFrame): The data to display metrics for
@@ -286,8 +284,7 @@ def create_metrics_row(df):
 
 # Function to create category breakdown
 def create_category_breakdown(df):
-    """
-    Create category breakdown visualizations
+    """Create category breakdown visualizations
     
     Parameters:
     df (pandas.DataFrame): The data to visualize
@@ -356,8 +353,7 @@ def create_category_breakdown(df):
 
 # Function to create category performance
 def create_category_performance(df):
-    """
-    Create detailed category performance analysis
+    """Create detailed category performance analysis
     
     Parameters:
     df (pandas.DataFrame): The data to analyze
@@ -449,8 +445,7 @@ def create_category_performance(df):
 
 # Function to create product performance analysis
 def create_product_performance(df, metric_sort):
-    """
-    Create product performance analysis and visualization
+    """Create product performance analysis and visualization
     
     Parameters:
     df (pandas.DataFrame): The data to analyze
@@ -572,18 +567,12 @@ def create_product_performance(df, metric_sort):
 
 # Function to create profitability analysis
 def create_profitability_analysis(df):
-    """
-    Create profitability analysis and visualizations
+    """Create profitability analysis and visualizations
     
     Parameters:
     df (pandas.DataFrame): The data to analyze
     """
-    Create profitability analysis and visualizations
-    
-    Parameters:
-    df (pandas.DataFrame): The data to analyze
-    """
-    st.markdown("<h2 class='sub-header'>Profitability Analysis</h2>", unsafe_allow_html=True)
+st.markdown("<h2 class='sub-header'>Profitability Analysis</h2>", unsafe_allow_html=True)
     
     # Profit metrics row
     col1, col2, col3 = st.columns(3)
@@ -700,8 +689,7 @@ def create_profitability_analysis(df):
 
 # Function to create sales analysis
 def create_sales_analysis(df):
-    """
-    Create sales analysis visualizations
+    """Create sales analysis visualizations
     
     Parameters:
     df (pandas.DataFrame): The data to analyze
