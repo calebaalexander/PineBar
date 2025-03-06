@@ -58,7 +58,46 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# DATA PROCESSING FUNCTIONS
+# Main application header
+st.markdown("<h1 class='main-header'>Pine Bar Analytics Dashboard</h1>", unsafe_allow_html=True)
+
+# Sidebar for navigation and filters
+st.sidebar.title("Dashboard Controls")
+
+# Data selection
+data_option = st.sidebar.selectbox(
+    "Select Data Period",
+    ["2023 Full Year", "2024 Full Year", "2025 (up to March 5)", "All Time Comparison"]
+)
+
+# Data file mapping (in a real app, these would be actual files)
+data_files = {
+    "2023 Full Year": "hemlock_product_breakdown_20230512_20240101.csv",
+    "2024 Full Year": "hemlock_product_breakdown_20240101_20250101.csv",
+    "2025 (up to March 5)": "hemlock_product_breakdown_20250101_20260101.csv"
+}
+
+# Category filter for analysis
+all_categories = ["BEER", "COCKTAILS", "FOOD", "SPIRITS", "WINE", "N/A", "Merch"]
+category_filter = st.sidebar.multiselect(
+    "Filter by Category",
+    ["All"] + all_categories,
+    default=["All"]
+)
+
+# Analysis type selection
+analysis_type = st.sidebar.selectbox(
+    "Select Analysis View",
+    ["Overview", "Sales Analysis", "Profitability Analysis", "Category Performance", "Product Performance"]
+)
+
+# Metric sorting options
+metric_sort = st.sidebar.selectbox(
+    "Sort Products By",
+    ["Most Sales", "Least Sales", "Most Profit", "Least Profit", "Highest Margin", "Lowest Margin", "Most Orders", "Least Orders"]
+)
+
+# Function to generate data
 def generate_data(option):
     """
     Generate synthetic data for Pine Bar analytics
@@ -151,17 +190,24 @@ def generate_data(option):
                 if transaction_quantity < 0: transaction_quantity = 0
                 
                 # Cost and profit
-                cost_factor = {
-                    "BEER": 0.35 + np.random.random() * 0.1,      # 35-45%
-                    "COCKTAILS": 0.25 + np.random.random() * 0.1, # 25-35%
-                    "FOOD": 0.4 + np.random.random() * 0.15,      # 40-55%
-                    "SPIRITS": 0.3 + np.random.random() * 0.1,    # 30-40%
-                    "WINE": 0.45 + np.random.random() * 0.1,      # 45-55%
-                    "N/A": 0.15 + np.random.random() * 0.1,       # 15-25%
-                    "Merch": 0.5 + np.random.random() * 0.2,      # 50-70%
-                }
+                cost_factor = 0.3 + np.random.random() * 0.3  # Cost between 30-60% of total
                 
-                cost = total_amount * cost_factor[category]
+                if category == "BEER":
+                    cost_factor = 0.35 + np.random.random() * 0.1  # 35-45%
+                elif category == "COCKTAILS":
+                    cost_factor = 0.25 + np.random.random() * 0.1  # 25-35%
+                elif category == "FOOD":
+                    cost_factor = 0.4 + np.random.random() * 0.15  # 40-55%
+                elif category == "SPIRITS":
+                    cost_factor = 0.3 + np.random.random() * 0.1  # 30-40%
+                elif category == "WINE":
+                    cost_factor = 0.45 + np.random.random() * 0.1  # 45-55%
+                elif category == "N/A":
+                    cost_factor = 0.15 + np.random.random() * 0.1  # 15-25%
+                elif category == "Merch":
+                    cost_factor = 0.5 + np.random.random() * 0.2  # 50-70%
+                
+                cost = total_amount * cost_factor
                 profit = transaction_amount - cost
                 profit_margin = (profit / transaction_amount * 100) if transaction_amount > 0 else 0
                 
@@ -196,7 +242,7 @@ def generate_data(option):
     df = pd.DataFrame(data)
     return df
 
-# VISUALIZATION FUNCTIONS
+# Function to create metrics row
 def create_metrics_row(df):
     """
     Create a row of key metrics cards
@@ -238,6 +284,7 @@ def create_metrics_row(df):
         st.markdown("<div class='metric-label'>Avg Order Value</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
+# Function to create category breakdown
 def create_category_breakdown(df):
     """
     Create category breakdown visualizations
@@ -307,6 +354,7 @@ def create_category_breakdown(df):
     # Display the formatted DataFrame
     st.dataframe(display_df[['Category', 'Revenue', 'Profit', 'Margin', 'Orders', 'Avg Order Value']], use_container_width=True)
 
+# Function to create category performance
 def create_category_performance(df):
     """
     Create detailed category performance analysis
@@ -377,93 +425,7 @@ def create_category_performance(df):
         st.plotly_chart(fig2, use_container_width=True)
     
     with col2:
-
-
-# Main application header
-st.markdown("<h1 class='main-header'>Pine Bar Analytics Dashboard</h1>", unsafe_allow_html=True)
-
-# Sidebar for navigation and filters
-st.sidebar.title("Dashboard Controls")
-
-# Data selection
-data_option = st.sidebar.selectbox(
-    "Select Data Period",
-    ["2023 Full Year", "2024 Full Year", "2025 (up to March 5)", "All Time Comparison"]
-)
-
-# Data file mapping (in a real app, these would be actual files)
-data_files = {
-    "2023 Full Year": "hemlock_product_breakdown_20230512_20240101.csv",
-    "2024 Full Year": "hemlock_product_breakdown_20240101_20250101.csv",
-    "2025 (up to March 5)": "hemlock_product_breakdown_20250101_20260101.csv"
-}
-
-# Category filter for analysis
-all_categories = ["BEER", "COCKTAILS", "FOOD", "SPIRITS", "WINE", "N/A", "Merch"]
-category_filter = st.sidebar.multiselect(
-    "Filter by Category",
-    ["All"] + all_categories,
-    default=["All"]
-)
-
-# Analysis type selection
-analysis_type = st.sidebar.selectbox(
-    "Select Analysis View",
-    ["Overview", "Sales Analysis", "Profitability Analysis", "Category Performance", "Product Performance"]
-)
-
-# Metric sorting options
-metric_sort = st.sidebar.selectbox(
-    "Sort Products By",
-    ["Most Sales", "Least Sales", "Most Profit", "Least Profit", "Highest Margin", "Lowest Margin", "Most Orders", "Least Orders"]
-)
-
-# Load data based on selection
-if data_option == "All Time Comparison":
-    # Load all datasets
-    df_2023 = generate_data("2023 Full Year")
-    df_2024 = generate_data("2024 Full Year")
-    df_2025 = generate_data("2025 (up to March 5)")
-    
-    # Combine datasets
-    df = pd.concat([df_2023, df_2024, df_2025])
-else:
-    df = generate_data(data_option)
-
-# Apply category filter
-if "All" not in category_filter:
-    df = df[df['Category'].isin(category_filter)]
-
-# Render the appropriate view based on selection
-if analysis_type == "Overview":
-    # Display key metrics
-    create_metrics_row(df)
-    
-    # Display category breakdown
-    create_category_breakdown(df)
-    
-    # Display top products
-    create_product_performance(df, metric_sort)
-    
-elif analysis_type == "Sales Analysis":
-    # Sales Analysis view
-    create_sales_analysis(df)
-    
-elif analysis_type == "Profitability Analysis":
-    # Profitability Analysis view
-    create_profitability_analysis(df)
-    
-elif analysis_type == "Category Performance":
-    # Category Performance view
-    create_category_performance(df)
-    
-elif analysis_type == "Product Performance":
-    # Product Performance view
-    create_product_performance(df, metric_sort)
-    
-# Add a note at the bottom
-st.markdown("---")
-st.markdown("*Note: This dashboard uses synthetic data generated for demonstration purposes.*")
+        st.plotly_chart(fig3, use_container_width=True)
     
     # Format the DataFrame for display
     st.markdown("<h3>Detailed Category Metrics</h3>", unsafe_allow_html=True)
@@ -481,10 +443,11 @@ st.markdown("*Note: This dashboard uses synthetic data generated for demonstrati
     display_df['Profit Share'] = display_df['Profit Share'].apply(lambda x: f"{x:.1f}%")
     
     cols_to_display = ['Category', 'Revenue', 'Profit', 'Margin', 'Orders', 'Items', 
-                      'Products', 'Avg Order', 'Rev/Item', 'Rev Share', 'Profit Share']
+                       'Products', 'Avg Order', 'Rev/Item', 'Rev Share', 'Profit Share']
     
     st.dataframe(display_df[cols_to_display], use_container_width=True)
 
+# Function to create product performance analysis
 def create_product_performance(df, metric_sort):
     """
     Create product performance analysis and visualization
@@ -607,7 +570,17 @@ def create_product_performance(df, metric_sort):
     with st.expander("Top Selling Product by Category"):
         st.dataframe(top_category_df[['Category', 'SKU', 'Revenue', 'Profit', 'Margin']], use_container_width=True)
 
+# Function to create profitability analysis
 def create_profitability_analysis(df):
+    """
+    Create profitability analysis and visualizations
+    
+    Parameters:
+    df (pandas.DataFrame): The data to analyze
+    """
+    st.markdown("<h2 class=')
+                
+    def create_profitability_analysis(df):
     """
     Create profitability analysis and visualizations
     
@@ -728,3 +701,209 @@ def create_profitability_analysis(df):
         
         st.dataframe(display_df[['SKU', 'Category', 'Revenue', 'Profit', 'Margin']], use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
+# Function to create sales analysis
+def create_sales_analysis(df):
+    """
+    Create sales analysis visualizations
+    
+    Parameters:
+    df (pandas.DataFrame): The data to analyze
+    """
+    st.markdown("<h2 class='sub-header'>Sales Analysis</h2>", unsafe_allow_html=True)
+    
+    # Sales metrics row
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_revenue = df['Transaction Amount'].sum()
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-value'>${total_revenue:,.0f}</div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-label'>Total Revenue</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    with col2:
+        total_orders = df['Transaction Count'].sum()
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-value'>{total_orders:,.0f}</div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-label'>Total Orders</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    with col3:
+        avg_order_value = df['Transaction Amount'].sum() / df['Transaction Count'].sum() if df['Transaction Count'].sum() > 0 else 0
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-value'>${avg_order_value:.2f}</div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-label'>Avg Order Value</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    with col4:
+        total_quantity = df['Transaction Quantity'].sum()
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-value'>{total_quantity:,.0f}</div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-label'>Total Items Sold</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Sales by category
+    st.markdown("<h3>Revenue Distribution</h3>")
+    
+    # Group by category
+    category_sales = df.groupby('Category').agg({
+        'Transaction Amount': 'sum',
+        'Transaction Count': 'sum',
+        'Transaction Quantity': 'sum'
+    }).reset_index()
+    
+    # Calculate percentage of total sales
+    total_sales = df['Transaction Amount'].sum()
+    category_sales['Sales Percentage'] = (category_sales['Transaction Amount'] / total_sales * 100).round(1)
+    
+    # Sort by Transaction Amount
+    category_sales = category_sales.sort_values('Transaction Amount', ascending=False)
+    
+    # Create stacked bar chart for comparison of revenue, quantity and orders
+    fig = go.Figure()
+    
+    # Normalize values for comparison
+    category_sales['Normalized Revenue'] = category_sales['Transaction Amount'] / category_sales['Transaction Amount'].sum() * 100
+    category_sales['Normalized Quantity'] = category_sales['Transaction Quantity'] / category_sales['Transaction Quantity'].sum() * 100
+    category_sales['Normalized Orders'] = category_sales['Transaction Count'] / category_sales['Transaction Count'].sum() * 100
+    
+    fig.add_trace(go.Bar(
+        x=category_sales['Category'],
+        y=category_sales['Normalized Revenue'],
+        name='Revenue',
+        marker_color='#3498db'
+    ))
+    
+    fig.add_trace(go.Bar(
+        x=category_sales['Category'],
+        y=category_sales['Normalized Quantity'],
+        name='Quantity',
+        marker_color='#2ecc71'
+    ))
+    
+    fig.add_trace(go.Bar(
+        x=category_sales['Category'],
+        y=category_sales['Normalized Orders'],
+        name='Orders',
+        marker_color='#e74c3c'
+    ))
+    
+    fig.update_layout(
+        title='Revenue, Quantity, and Orders by Category (Normalized %)',
+        xaxis_title='Category',
+        yaxis_title='Percentage (%)',
+        barmode='group',
+        bargap=0.15,
+        bargroupgap=0.1
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Create a treemap for sales breakdown
+    df_copy = df.copy()
+    df_copy['Revenue Label'] = df_copy['Transaction Amount'].apply(lambda x: f"${x:,.0f}")
+    
+    fig2 = px.treemap(
+        df_copy,
+        path=[px.Constant("All Categories"), 'Category', 'SKU'],
+        values='Transaction Amount',
+        color='Profit Margin',
+        hover_data=['Revenue Label', 'Transaction Count'],
+        color_continuous_scale='RdBu',
+        color_continuous_midpoint=np.median(df_copy['Profit Margin'])
+    )
+    
+    fig2.update_layout(
+        title='Revenue Breakdown by Category and Product'
+    )
+    
+    st.plotly_chart(fig2, use_container_width=True)
+    
+    # If year data is available, show year-over-year comparison
+    if 'Year' in df.columns and len(df['Year'].unique()) > 1:
+        st.markdown("<h3>Year Over Year Comparison</h3>", unsafe_allow_html=True)
+        
+        # Group by year
+        yearly_sales = df.groupby('Year').agg({
+            'Transaction Amount': 'sum',
+            'Transaction Count': 'sum',
+            'Profit': 'sum'
+        }).reset_index()
+        
+        # Create year over year comparison chart
+        fig3 = go.Figure()
+        
+        fig3.add_trace(go.Bar(
+            x=yearly_sales['Year'],
+            y=yearly_sales['Transaction Amount'],
+            name='Revenue',
+            text=yearly_sales['Transaction Amount'].apply(lambda x: f"${x:,.0f}"),
+            textposition='auto',
+            marker_color='#3498db'
+        ))
+        
+        fig3.add_trace(go.Bar(
+            x=yearly_sales['Year'],
+            y=yearly_sales['Profit'],
+            name='Profit',
+            text=yearly_sales['Profit'].apply(lambda x: f"${x:,.0f}"),
+            textposition='auto',
+            marker_color='#2ecc71'
+        ))
+        
+        fig3.update_layout(
+            title='Revenue and Profit by Year',
+            xaxis_title='Year',
+            yaxis_title='Amount ($)',
+            barmode='group'
+        )
+        
+        st.plotly_chart(fig3, use_container_width=True)
+
+# Load data based on selection
+if data_option == "All Time Comparison":
+    # Load all datasets
+    df_2023 = generate_data("2023 Full Year")
+    df_2024 = generate_data("2024 Full Year")
+    df_2025 = generate_data("2025 (up to March 5)")
+    
+    # Combine datasets
+    df = pd.concat([df_2023, df_2024, df_2025])
+else:
+    df = generate_data(data_option)
+
+# Apply category filter
+if "All" not in category_filter:
+    df = df[df['Category'].isin(category_filter)]
+
+# Render the appropriate view based on selection
+if analysis_type == "Overview":
+    # Display key metrics
+    create_metrics_row(df)
+    
+    # Display category breakdown
+    create_category_breakdown(df)
+    
+    # Display top products
+    create_product_performance(df, metric_sort)
+    
+elif analysis_type == "Sales Analysis":
+    # Sales Analysis view
+    create_sales_analysis(df)
+    
+elif analysis_type == "Profitability Analysis":
+    # Profitability Analysis view
+    create_profitability_analysis(df)
+    
+elif analysis_type == "Category Performance":
+    # Category Performance view
+    create_category_performance(df)
+    
+elif analysis_type == "Product Performance":
+    # Product Performance view
+    create_product_performance(df, metric_sort)
+    
+# Add a note at the bottom
+st.markdown("---")
+st.markdown("*Note: This dashboard uses synthetic data generated for demonstration purposes.*")
