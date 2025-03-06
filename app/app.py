@@ -614,5 +614,4 @@ def create_time_trends(df):
                 else:
                     container = col3
                     
-                with container:
-                    )
+                with container:)
