@@ -5,7 +5,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import calendar
-import os
 
 # Set page config
 st.set_page_config(
@@ -59,78 +58,125 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Function to load data
-@st.cache_data
-def load_data(file_path):
-    try:
-        df = pd.read_csv(file_path)
-        
-        # Add a Category column based on SKU
-        categories = {
-            "BEER": ["Hemlock", "CURRENT CAN", "GANSETT", "N/A BEER", "Return Beer", "SIX POINT", "Vermonter Cider"],
-            "COCKTAILS": ["BEAD & FEATHER", "BLACK MANHATTAN", "CARPETBAGGER", "COCKTAIL OF THE DAY", 
-                         "COCKTAIL SHAKEN", "COCKTAIL STIRRED", "Daiquiri", "Gershwin", "Gimlet", 
-                         "Gin & Sin", "HAITIAN DIVORCE", "HOT DRINX", "Manhattan", "Margarita", 
-                         "Martini Gin", "Martini Vodka", "Negroni", "Old Fashioned", "Open Cocktail", 
-                         "Paper Plane", "Penicillin", "Pineapple Daiq", "pineapple daiquiri", 
-                         "POP-UP COCKTAIL", "Rainy Day Dark And Stormy", "SAZERAC COCKTAIL", 
-                         "SHOOTER", "Soda", "SPRITZ", "TITOS MARTINI", "TONE POLICE"],
-            "FOOD": ["BABA GHANO0USH", "BEEF TARTARE", "BITTER SALAD", "BOQUERONES", "BROWNIE", 
-                    "Burger", "CARROTS", "CAVIAR DOG", "CHARRED BEETS", "CHICKEM KEBAB", 
-                    "CHX SANDWICH", "CROQUETTES", "Doggie", "DUCK RILLETTES", "EXTRA FOCACCIA", 
-                    "Extra Patty", "FALAFEL", "FOCACCIA", "FRENCH FRIES", "Fries", "HANDER STEAK", 
-                    "HUMMUS", "LAMB KABAB", "LEEK TOAST", "MEZE PLATTER", "MEZE PLATTY", "PLATTY", 
-                    "MOUSSE", "MOZZ STICKS", "MUHAMMARA", "NYE TACOS", "OLIVES AND PICKELS", 
-                    "Open Food", "Order note", "Pimento Cheese", "Salad", "SAUSAGE", "SEA TROUT", 
-                    "Smash - Vegan Patty", "STEAK FRITES", "SUNCHOKES", "TOSTADA", "TZATZIKI", "VCC"],
-            "SPIRITS": ["AMARGO VALLET", "Amaro", "Balvenie", "Bourbon", "BW WHEAT", "CAMPARI", 
-                       "CASCUIN TAHONA", "CURRENT CASSIS", "CYNAR", "EL DORADO 12", "ESPOLON", 
-                       "Fernet", "Gin", "Hendricks", "Juice", "Macallan 18", "Makers", "Mezcal", 
-                       "Michters", "MONTENEGRO", "NONINO", "OLD FORESTER 100", "Open Spirit", 
-                       "Rare Breed", "RITTENHOUSE", "Rum", "SAZERAC", "Scotch", "SHOT 4$", 
-                       "SHOT 5$", "SHOT 6$", "SHOT 7$", "SHOT 8$", "SHOT 9$", "Spirit", 
-                       "SUZE", "Talisker", "Tequila", "TEREMANA REPOSADO", "Tesoro", "Titos", 
-                       "Toki", "TULLY", "Vodka", "Wathen's", "ZACAPA"],
-            "WINE": ["BTL Fizzy", "GLS Fizzy", "GLS Red", "GLS Rose", "GLS White", "OPEN WINE"],
-            "N/A": ["Ginger Beer", "Mock Turtleneck", "POP-UP MOCKTAIL"],
-            "Merch": ["Candle 2 oz", "Candle 9oz", "Misc", "GIFT CERTIFICATE"]
-        }
-        
-        # Create a dictionary mapping each SKU to its category
-        sku_to_category = {}
-        for category, items in categories.items():
-            for item in items:
-                sku_to_category[item] = category
-        
-        # Add Category column based on SKU lookup
-        df['Category'] = df['SKU'].map(sku_to_category)
-        
-        # Calculate Cost and Profit (if not already in the data)
-        if 'Cost' not in df.columns:
-            # Assume cost is 30-60% of Transaction Amount, varying by category
-            cost_factors = {
-                'BEER': 0.4,
-                'COCKTAILS': 0.3,
-                'FOOD': 0.5,
-                'SPIRITS': 0.45,
-                'WINE': 0.35,
-                'N/A': 0.25,
-                'Merch': 0.6
-            }
-            
-            # Apply cost factor based on category
-            df['Cost'] = df.apply(lambda row: row['Transaction Amount'] * cost_factors.get(row['Category'], 0.4), axis=1)
-            
-            # Add some randomness to make it more realistic
-            df['Cost'] = df['Cost'] * (0.9 + np.random.random(len(df)) * 0.2)
-        
-        if 'Profit' not in df.columns:
-            df['Profit'] = df['Transaction Amount'] - df['Cost']
-        
-        return df
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        return pd.DataFrame()
+# Function to generate synthetic data
+def generate_data(option):
+    # Categories and items
+    categories = {
+        "BEER": ["Hemlock", "CURRENT CAN", "GANSETT", "N/A BEER", "Return Beer", "SIX POINT", "Vermonter Cider"],
+        "COCKTAILS": ["BEAD & FEATHER", "BLACK MANHATTAN", "CARPETBAGGER", "COCKTAIL OF THE DAY", 
+                     "COCKTAIL SHAKEN", "COCKTAIL STIRRED", "Daiquiri", "Gershwin", "Gimlet", 
+                     "Gin & Sin", "HAITIAN DIVORCE", "HOT DRINX", "Manhattan", "Margarita", 
+                     "Martini Gin", "Martini Vodka", "Negroni", "Old Fashioned", "Open Cocktail", 
+                     "Paper Plane", "Penicillin", "Pineapple Daiq", "pineapple daiquiri", 
+                     "POP-UP COCKTAIL", "Rainy Day Dark And Stormy", "SAZERAC COCKTAIL", 
+                     "SHOOTER", "Soda", "SPRITZ", "TITOS MARTINI", "TONE POLICE"],
+        "FOOD": ["BABA GHANO0USH", "BEEF TARTARE", "BITTER SALAD", "BOQUERONES", "BROWNIE", 
+                "Burger", "CARROTS", "CAVIAR DOG", "CHARRED BEETS", "CHICKEM KEBAB", 
+                "CHX SANDWICH", "CROQUETTES", "Doggie", "DUCK RILLETTES", "EXTRA FOCACCIA", 
+                "Extra Patty", "FALAFEL", "FOCACCIA", "FRENCH FRIES", "Fries", "HANDER STEAK", 
+                "HUMMUS", "LAMB KABAB", "LEEK TOAST", "MEZE PLATTER", "MEZE PLATTY", "PLATTY", 
+                "MOUSSE", "MOZZ STICKS", "MUHAMMARA", "NYE TACOS", "OLIVES AND PICKELS", 
+                "Open Food", "Order note", "Pimento Cheese", "Salad", "SAUSAGE", "SEA TROUT", 
+                "Smash - Vegan Patty", "STEAK FRITES", "SUNCHOKES", "TOSTADA", "TZATZIKI", "VCC"],
+        "SPIRITS": ["AMARGO VALLET", "Amaro", "Balvenie", "Bourbon", "BW WHEAT", "CAMPARI", 
+                   "CASCUIN TAHONA", "CURRENT CASSIS", "CYNAR", "EL DORADO 12", "ESPOLON", 
+                   "Fernet", "Gin", "Hendricks", "Juice", "Macallan 18", "Makers", "Mezcal", 
+                   "Michters", "MONTENEGRO", "NONINO", "OLD FORESTER 100", "Open Spirit", 
+                   "Rare Breed", "RITTENHOUSE", "Rum", "SAZERAC", "Scotch", "SHOT 4$", 
+                   "SHOT 5$", "SHOT 6$", "SHOT 7$", "SHOT 8$", "SHOT 9$", "Spirit", 
+                   "SUZE", "Talisker", "Tequila", "TEREMANA REPOSADO", "Tesoro", "Titos", 
+                   "Toki", "TULLY", "Vodka", "Wathen's", "ZACAPA"],
+        "WINE": ["BTL Fizzy", "GLS Fizzy", "GLS Red", "GLS Rose", "GLS White", "OPEN WINE"],
+        "N/A": ["Ginger Beer", "Mock Turtleneck", "POP-UP MOCKTAIL"],
+        "Merch": ["Candle 2 oz", "Candle 9oz", "Misc", "GIFT CERTIFICATE"]
+    }
+    
+    # Set random seed based on option for consistent results
+    if option == "2023 Full Year":
+        np.random.seed(2023)
+        n_samples = 150
+        year = "2023"
+    elif option == "2024 Full Year":
+        np.random.seed(2024)
+        n_samples = 180
+        year = "2024"
+    else:  # 2025 data
+        np.random.seed(2025)
+        n_samples = 70
+        year = "2025"
+    
+    # Create empty dataframe
+    data = []
+    
+    # Generate synthetic data for each category
+    for category, items in categories.items():
+        for item in items:
+            # Only include some items to match the number of samples
+            if np.random.random() > 0.3:
+                # Generate realistic metrics
+                total_amount = np.random.randint(500, 25000)
+                total_quantity = np.random.randint(10, int(total_amount / 10) + 1)
+                transaction_count = np.random.randint(5, min(500, total_quantity + 1))
+                
+                # Calculate other metrics based on total
+                zero_priced = np.random.randint(0, int(total_quantity * 0.05) + 1)
+                disc_amount = -np.random.randint(0, int(total_amount * 0.15) + 1) if np.random.random() > 0.3 else 0
+                disc_quantity = np.random.randint(0, int(total_quantity * 0.15) + 1) if disc_amount < 0 else 0
+                disc_transactions = np.random.randint(0, min(50, disc_quantity + 1)) if disc_quantity > 0 else 0
+                
+                offered_amount = np.random.randint(0, int(total_amount * 0.1) + 1) if np.random.random() > 0.7 else 0
+                offered_quantity = np.random.randint(0, int(total_quantity * 0.05) + 1) if offered_amount > 0 else 0
+                offered_transactions = np.random.randint(0, min(20, offered_quantity + 1)) if offered_quantity > 0 else 0
+                
+                loss_amount = -np.random.randint(0, int(total_amount * 0.1) + 1) if np.random.random() > 0.8 else 0
+                loss_quantity = np.random.randint(0, int(total_quantity * 0.05) + 1) if loss_amount < 0 else 0
+                loss_transactions = np.random.randint(0, min(10, loss_quantity + 1)) if loss_quantity > 0 else 0
+                
+                returned_amount = -np.random.randint(0, int(total_amount * 0.05) + 1) if np.random.random() > 0.85 else 0
+                returned_quantity = np.random.randint(0, int(total_quantity * 0.03) + 1) if returned_amount < 0 else 0
+                returned_transactions = np.random.randint(0, min(5, returned_quantity + 1)) if returned_quantity > 0 else 0
+                
+                # Calculate final transaction values
+                transaction_amount = total_amount + disc_amount + offered_amount + loss_amount + returned_amount
+                transaction_quantity = total_quantity - zero_priced - disc_quantity - offered_quantity - loss_quantity - returned_quantity
+                if transaction_quantity < 0: transaction_quantity = 0
+                
+                # Cost and profit
+                cost_factor = 0.3 + np.random.random() * 0.3  # Cost between 30-60% of total
+                cost = total_amount * cost_factor
+                profit = transaction_amount - cost
+                profit_margin = (profit / transaction_amount * 100) if transaction_amount > 0 else 0
+                
+                data.append({
+                    "SKU": item, 
+                    "Category": category, 
+                    "Total Amount": total_amount, 
+                    "Total Quantity": total_quantity, 
+                    "Total Transaction Count": transaction_count,
+                    "Zero Priced Count": zero_priced, 
+                    "Discounted Amount": disc_amount, 
+                    "Discounted Quantity": disc_quantity, 
+                    "Discounted Transaction Count": disc_transactions,
+                    "Offered Amount": offered_amount, 
+                    "Offered Quantity": offered_quantity, 
+                    "Offered Transaction Count": offered_transactions,
+                    "Loss Amount": loss_amount, 
+                    "Loss Quantity": loss_quantity, 
+                    "Loss Transaction Count": loss_transactions,
+                    "Returned Amount": returned_amount, 
+                    "Returned Quantity": returned_quantity, 
+                    "Returned Transaction Count": returned_transactions,
+                    "Transaction Amount": transaction_amount, 
+                    "Transaction Quantity": transaction_quantity, 
+                    "Transaction Count": transaction_count,
+                    "Cost": cost, 
+                    "Profit": profit,
+                    "Profit Margin": profit_margin,
+                    "Year": year
+                })
+    
+    df = pd.DataFrame(data)
+    return df
 
 # Main application header
 st.markdown("<h1 class='main-header'>Pine Bar Analytics Dashboard</h1>", unsafe_allow_html=True)
@@ -144,13 +190,6 @@ data_option = st.sidebar.selectbox(
     ["2023 Full Year", "2024 Full Year", "2025 (up to March 5)", "All Time Comparison"]
 )
 
-# Data file mapping
-data_files = {
-    "2023 Full Year": "hemlock_product_breakdown_20230512_20240101.csv",
-    "2024 Full Year": "hemlock_product_breakdown_20240101_20250101.csv",
-    "2025 (up to March 5)": "hemlock_product_breakdown_20250101_20260101.csv"
-}
-
 # Category filter for analysis
 all_categories = ["BEER", "COCKTAILS", "FOOD", "SPIRITS", "WINE", "N/A", "Merch"]
 category_filter = st.sidebar.multiselect(
@@ -162,7 +201,7 @@ category_filter = st.sidebar.multiselect(
 # Analysis type selection
 analysis_type = st.sidebar.selectbox(
     "Select Analysis View",
-    ["Overview", "Sales Analysis", "Profitability Analysis", "Category Performance", "Product Performance", "Trend Analysis"]
+    ["Overview", "Sales Analysis", "Profitability Analysis", "Category Performance", "Product Performance"]
 )
 
 # Metric sorting options
@@ -171,45 +210,17 @@ metric_sort = st.sidebar.selectbox(
     ["Most Sales", "Least Sales", "Most Profit", "Least Profit", "Highest Margin", "Lowest Margin", "Most Orders", "Least Orders"]
 )
 
-# Time granularity for trend analysis
-if analysis_type == "Trend Analysis":
-    time_granularity = st.sidebar.selectbox(
-        "Time Granularity",
-        ["Monthly", "Quarterly", "Yearly"]
-    )
-
 # Load data based on selection
 if data_option == "All Time Comparison":
     # Load all datasets
-    df_2023 = load_data(data_files["2023 Full Year"])
-    df_2024 = load_data(data_files["2024 Full Year"])
-    df_2025 = load_data(data_files["2025 (up to March 5)"])
-    
-    # Add year column to each dataset
-    df_2023['Year'] = '2023'
-    df_2024['Year'] = '2024'
-    df_2025['Year'] = '2025'
-    
-    # Add date ranges
-    df_2023['Date_Range'] = pd.date_range(start='2023-05-12', periods=len(df_2023), freq='D')
-    df_2024['Date_Range'] = pd.date_range(start='2024-01-01', periods=len(df_2024), freq='D')
-    df_2025['Date_Range'] = pd.date_range(start='2025-01-01', periods=len(df_2025), freq='D')
+    df_2023 = generate_data("2023 Full Year")
+    df_2024 = generate_data("2024 Full Year")
+    df_2025 = generate_data("2025 (up to March 5)")
     
     # Combine datasets
     df = pd.concat([df_2023, df_2024, df_2025])
 else:
-    df = load_data(data_files[data_option])
-    
-    # Add year column
-    if data_option == "2023 Full Year":
-        df['Year'] = '2023'
-        df['Date_Range'] = pd.date_range(start='2023-05-12', periods=len(df), freq='D')
-    elif data_option == "2024 Full Year":
-        df['Year'] = '2024'
-        df['Date_Range'] = pd.date_range(start='2024-01-01', periods=len(df), freq='D')
-    else:
-        df['Year'] = '2025'
-        df['Date_Range'] = pd.date_range(start='2025-01-01', periods=len(df), freq='D')
+    df = generate_data(data_option)
 
 # Apply category filter
 if "All" not in category_filter:
@@ -317,10 +328,6 @@ def create_category_breakdown(df):
 def create_product_performance(df, metric_sort):
     st.markdown("<h2 class='sub-header'>Product Performance</h2>", unsafe_allow_html=True)
     
-    # Add profit margin column if not present
-    if 'Profit Margin' not in df.columns:
-        df['Profit Margin'] = (df['Profit'] / df['Transaction Amount'] * 100)
-    
     # Determine sorting based on selected option
     if metric_sort == "Most Sales":
         df_sorted = df.sort_values('Transaction Amount', ascending=False).head(10)
@@ -406,8 +413,6 @@ def create_product_performance(df, metric_sort):
     
     # Display the data table
     with st.expander("View Detailed Product Data"):
-        df_sorted['Profit Margin'] = df_sorted['Profit Margin'].round(1)
-        
         # Format columns for display
         display_df = df_sorted.copy()
         display_df['Revenue'] = display_df['Transaction Amount'].apply(lambda x: f"${x:,.0f}")
@@ -500,7 +505,7 @@ def create_profitability_analysis(df):
     # High vs Low margin product analysis
     st.markdown("<h3>High vs Low Margin Products</h3>")
     
-    # Define high and low margin thresholds (e.g., top 10% and bottom 10%)
+    # Define high and low margin thresholds
     high_margin_threshold = df['Profit Margin'].quantile(0.9)
     low_margin_threshold = df['Profit Margin'].quantile(0.1)
     
@@ -550,13 +555,4 @@ def create_sales_analysis(df):
         st.markdown("</div>", unsafe_allow_html=True)
     
     with col2:
-        total_orders = df['Transaction Count'].sum()
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='metric-value'>{total_orders:,.0f}</div>", unsafe_allow_html=True)
-        st.markdown("<div class='metric-label'>Total Orders</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-    
-    with col3:
-        avg_order_value = df['Transaction Amount'].sum() / df['Transaction Count'].sum() if df['Transaction Count'].sum() > 0 else 0
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='metric-value'>${avg_order_value:.2f}</div>", unsafe_allow_)
+        total_orders = df['Transaction)
