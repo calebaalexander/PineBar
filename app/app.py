@@ -963,4 +963,4 @@ elif analysis_type == "Product Performance":
     
 # Add a note at the bottom
 st.markdown("---")
-st.markdown("*Note: This dashboard uses synthetic data generated for demonstration purposes.*")
+st.markdown("**")
