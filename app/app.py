@@ -615,4 +615,4 @@ def create_time_trends(df):
                     container = col3
                 
                 with container:
-                    st.markdown("<div class")
+                    st.markdown("<div class='card'>", unsafe_allow_html=True)
