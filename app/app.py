@@ -614,18 +614,18 @@ def create_time_trends(df):
                 else:
                     container = col3
                     
-               with container:
-                    st.markdown("<div class='card'>", unsafe_allow_html=True)
-                    st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
-                    
-                    if metric in ['Revenue', 'Profit']:
-                        st.markdown(f"<div class='metric-value'>${val_2024:,.0f}</div>", unsafe_allow_html=True)
-                        st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 (${val_2023:,.0f})</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"<div class='metric-value'>{val_2024:,.0f}</div>", unsafe_allow_html=True)
-                        st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 ({val_2023:,.0f})</div>", unsafe_allow_html=True)
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
+              with container:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
+    
+    if metric in ['Revenue', 'Profit']:
+        st.markdown(f"<div class='metric-value'>${val_2024:,.0f}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 (${val_2023:,.0f})</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='metric-value'>{val_2024:,.0f}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 ({val_2023:,.0f})</div>", unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
         
         return monthly_df
     
