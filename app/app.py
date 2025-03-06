@@ -598,4 +598,4 @@ elif analysis_type == "Sales Analysis":
         st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.markdown(f"<div class='metric-value'>${avg_sale:.2f}</div>", unsafe_allow_html=True)
         st.markdown("<div class='metric-label'>Average Sale</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True
+        st.markdown("</div>", unsafe_allow_html=True)
