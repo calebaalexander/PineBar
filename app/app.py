@@ -614,5 +614,123 @@ def create_time_trends(df):
                 else:
                     container = col3
                     
-                with container:
-                    st.markdown("<div class='card'>",
+               with container:
+                    st.markdown("<div class='card'>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
+                    
+                    if metric in ['Revenue', 'Profit']:
+                        st.markdown(f"<div class='metric-value'>${val_2024:,.0f}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 (${val_2023:,.0f})</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div class='metric-value'>{val_2024:,.0f}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 ({val_2023:,.0f})</div>", unsafe_allow_html=True)
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
+        
+        return monthly_df
+    
+    except Exception as e:
+        st.error(f"Error creating time trends: {e}")
+        return pd.DataFrame()
+
+# Function to create sales analysis
+def create_sales_analysis(df):
+    try:
+        # Display sales metrics
+        st.markdown("<h2 class='sub-header'>Sales Performance</h2>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='metric-value'>${df['Transaction Amount'].sum():,.0f}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='metric-label'>Total Revenue</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='metric-value'>{df['Transaction Count'].sum():,.0f}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='metric-label'>Total Transactions</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        with col3:
+            avg_sale = df['Transaction Amount'].sum() / df['Transaction Count'].sum() if df['Transaction Count'].sum() > 0 else 0
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='metric-value'>${avg_sale:.2f}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='metric-label'>Average Sale</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Create top products by sales
+        create_top_products(df, "Most Sales")
+        
+    except Exception as e:
+        st.error(f"Error creating sales analysis: {e}")
+
+# Function to create profitability analysis
+def create_profitability_analysis(df):
+    try:
+        # Display profitability metrics
+        st.markdown("<h2 class='sub-header'>Profitability Analysis</h2>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='metric-value'>${df['Profit'].sum():,.0f}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='metric-label'>Total Profit</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        with col2:
+            profit_margin = (df['Profit'].sum() / df['Transaction Amount'].sum() * 100) if df['Transaction Amount'].sum() > 0 else 0
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='metric-value'>{profit_margin:.1f}%</div>", unsafe_allow_html=True)
+            st.markdown("<div class='metric-label'>Profit Margin</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        with col3:
+            profit_per_transaction = df['Profit'].sum() / df['Transaction Count'].sum() if df['Transaction Count'].sum() > 0 else 0
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"<div class='metric-value'>${profit_per_transaction:.2f}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='metric-label'>Profit per Transaction</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Create top products by profit
+        create_top_products(df, "Most Profit")
+        
+    except Exception as e:
+        st.error(f"Error creating profitability analysis: {e}")
+
+# Render appropriate view based on selection
+if st.session_state.analysis_view == "Overview":
+    # Display key metrics
+    create_metrics_row(df)
+    
+    # Display category breakdown
+    create_category_breakdown(df)
+    
+    # Display top products
+    create_top_products(df, st.session_state.sort_by)
+    
+    # If "All Time Comparison" is selected, show time trends
+    if st.session_state.data_period == "All Time Comparison":
+        create_time_trends(df)
+
+elif st.session_state.analysis_view == "Sales Analysis":
+    create_sales_analysis(df)
+    
+elif st.session_state.analysis_view == "Profitability Analysis":
+    create_profitability_analysis(df)
+    
+elif st.session_state.analysis_view == "Inventory Analysis":
+    st.markdown("<h2 class='sub-header'>Inventory Analysis</h2>", unsafe_allow_html=True)
+    st.write("This view would typically show inventory levels, turnover rates, and stockout information.")
+    
+    # Demo placeholder
+    st.info("Inventory module is under development. Check back soon for detailed inventory insights!")
+
+elif st.session_state.analysis_view == "Customer Trends":
+    st.markdown("<h2 class='sub-header'>Customer Trends</h2>", unsafe_allow_html=True)
+    st.write("This view would typically show customer metrics, frequency, and preferences.")
+    
+    # Demo placeholder
+    st.info("Customer analytics module is under development. Check back soon for detailed customer insights!")
