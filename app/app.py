@@ -963,4 +963,4 @@ elif analysis_type == "Product Performance":
     
 # Add a note at the bottom
 st.markdown("---")
-st.markdown("*© Caleb Alexander*")
+st.markdown("*© 2025 Caleb Alexander - All rights reserved. This data may not be used without authorization.*")
