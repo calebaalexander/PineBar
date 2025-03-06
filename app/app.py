@@ -529,92 +529,96 @@ def create_time_trends(df):
             st.plotly_chart(fig2, use_container_width=True)
         
         # Year-over-year comparison
-        if '2024' in df['Year'].unique() and '2023' in df['Year'].unique():
-            st.markdown("<h2 class='sub-header'>Year-over-Year Comparison</h2>", unsafe_allow_html=True)
+        # Year-over-year comparison
+try:
+    if '2024' in df['Year'].unique() and '2023' in df['Year'].unique():
+        st.markdown("<h2 class='sub-header'>Year-over-Year Comparison</h2>", unsafe_allow_html=True)
+        
+        # Group by year
+        yearly_data = monthly_df.groupby('Year').agg({
+            'Revenue': 'sum',
+            'Profit': 'sum',
+            'Transactions': 'sum'
+        }).reset_index()
+        
+        # Calculate YoY changes
+        yoy_data = []
+        metrics = ['Revenue', 'Profit', 'Transactions']
+        
+        for metric in metrics:
+            val_2023 = yearly_data[yearly_data['Year'] == '2023'][metric].values[0]
+            val_2024 = yearly_data[yearly_data['Year'] == '2024'][metric].values[0]
+            pct_change = ((val_2024 / val_2023) - 1) * 100
             
-            # Group by year
-            yearly_data = monthly_df.groupby('Year').agg({
-                'Revenue': 'sum',
-                'Profit': 'sum',
-                'Transactions': 'sum'
-            }).reset_index()
+            yoy_data.append({
+                'Metric': metric,
+                '2023 Value': val_2023,
+                '2024 Value': val_2024,
+                'Change %': pct_change
+            })
+        
+        yoy_df = pd.DataFrame(yoy_data)
+        
+        # Create YoY chart
+        fig = go.Figure()
+        
+        for i, row in yoy_df.iterrows():
+            metric = row['Metric']
+            val_2023 = row['2023 Value']
+            val_2024 = row['2024 Value']
+            pct_change = row['Change %']
             
-            # Calculate YoY changes
-            yoy_data = []
-            metrics = ['Revenue', 'Profit', 'Transactions']
+            if metric in ['Revenue', 'Profit']:
+                val_format = '${:,.0f}'
+            else:
+                val_format = '{:,.0f}'
             
-            for metric in metrics:
-                val_2023 = yearly_data[yearly_data['Year'] == '2023'][metric].values[0]
-                val_2024 = yearly_data[yearly_data['Year'] == '2024'][metric].values[0]
-                pct_change = ((val_2024 / val_2023) - 1) * 100
+            fig.add_trace(go.Bar(
+                x=['2023', '2024'],
+                y=[val_2023, val_2024],
+                name=metric,
+                text=[val_format.format(val_2023), val_format.format(val_2024)],
+                textposition='auto',
+                marker_color=['#3498DB', '#2ECC71'] if pct_change >= 0 else ['#3498DB', '#E74C3C']
+            ))
+        
+        fig.update_layout(
+            title=f'Year-over-Year Comparison (2023 vs 2024)',
+            barmode='group',
+            xaxis_title='Year',
+            yaxis_title='Value',
+            legend_title='Metric'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Display YoY table
+        col1, col2, col3 = st.columns(3)
+        
+        for i, row in yoy_df.iterrows():
+            metric = row['Metric']
+            val_2023 = row['2023 Value']
+            val_2024 = row['2024 Value']
+            pct_change = row['Change %']
+            
+            if i == 0:
+                container = col1
+            elif i == 1:
+                container = col2
+            else:
+                container = col3
                 
-                yoy_data.append({
-                    'Metric': metric,
-                    '2023 Value': val_2023,
-                    '2024 Value': val_2024,
-                    'Change %': pct_change
-                })
-            
-            yoy_df = pd.DataFrame(yoy_data)
-            
-            # Create YoY chart
-            fig = go.Figure()
-            
-            for i, row in yoy_df.iterrows():
-                metric = row['Metric']
-                val_2023 = row['2023 Value']
-                val_2024 = row['2024 Value']
-                pct_change = row['Change %']
+            with container:
+                st.markdown("<div class='card'>", unsafe_allow_html=True)
+                st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
                 
                 if metric in ['Revenue', 'Profit']:
-                    val_format = '${:,.0f}'
+                    st.markdown(f"<div class='metric-value'>${val_2024:,.0f}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 (${val_2023:,.0f})</div>", unsafe_allow_html=True)
                 else:
-                    val_format = '{:,.0f}'
+                    st.markdown(f"<div class='metric-value'>{val_2024:,.0f}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 ({val_2023:,.0f})</div>", unsafe_allow_html=True)
                 
-                fig.add_trace(go.Bar(
-                    x=['2023', '2024'],
-                    y=[val_2023, val_2024],
-                    name=metric,
-                    text=[val_format.format(val_2023), val_format.format(val_2024)],
-                    textposition='auto',
-                    marker_color=['#3498DB', '#2ECC71'] if pct_change >= 0 else ['#3498DB', '#E74C3C']
-                ))
-            
-            fig.update_layout(
-                title=f'Year-over-Year Comparison (2023 vs 2024)',
-                barmode='group',
-                xaxis_title='Year',
-                yaxis_title='Value',
-                legend_title='Metric'
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Display YoY table
-col1, col2, col3 = st.columns(3)
-
-for i, row in yoy_df.iterrows():
-    metric = row['Metric']
-    val_2023 = row['2023 Value']
-    val_2024 = row['2024 Value']
-    pct_change = row['Change %']
-    
-    if i == 0:
-        container = col1
-    elif i == 1:
-        container = col2
-    else:
-        container = col3
-        
-    with container:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
-        
-        if metric in ['Revenue', 'Profit']:
-            st.markdown(f"<div class='metric-value'>${val_2024:,.0f}</div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 (${val_2023:,.0f})</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"<div class='metric-value'>{val_2024:,.0f}</div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 ({val_2023:,.0f})</div>", unsafe_allow_html=True)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+except Exception as e:
+    st.error(f"Error creating year-over-year comparison: {e}")
