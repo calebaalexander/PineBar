@@ -615,3 +615,4 @@ def create_time_trends(df):
                     container = col3
                     
                 with container:
+                    )
