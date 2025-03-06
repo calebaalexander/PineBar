@@ -611,4 +611,4 @@ def create_time_trends(df):
                     st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
                     
                     if metric in ['Revenue', 'Profit']:
-                        st.markdown(f"<div class='metric-value'>${val_2)
+                        st.markdown(f"<div class='metric-value'>${val_2))
