@@ -578,10 +578,6 @@ def create_profitability_analysis(df):
     Parameters:
     df (pandas.DataFrame): The data to analyze
     """
-    st.markdown("<h2 class=')
-                
-    def create_profitability_analysis(df):
-    """
     Create profitability analysis and visualizations
     
     Parameters:
