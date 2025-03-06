@@ -528,97 +528,37 @@ def create_time_trends(df):
         with col2:
             st.plotly_chart(fig2, use_container_width=True)
         
-        # Year-over-year comparison
-        # Year-over-year comparison
-try:
-    if '2024' in df['Year'].unique() and '2023' in df['Year'].unique():
-        st.markdown("<h2 class='sub-header'>Year-over-Year Comparison</h2>", unsafe_allow_html=True)
+        # Function to create time trend analysis for all-time comparison
+def create_time_trends(df):
+    try:
+        # Create synthetic monthly data
+        months = pd.date_range(start='2023-05-01', end='2025-03-01', freq='MS')
+        monthly_data = []
         
-        # Group by year
-        yearly_data = monthly_df.groupby('Year').agg({
-            'Revenue': 'sum',
-            'Profit': 'sum',
-            'Transactions': 'sum'
-        }).reset_index()
-        
-        # Calculate YoY changes
-        yoy_data = []
-        metrics = ['Revenue', 'Profit', 'Transactions']
-        
-        for metric in metrics:
-            val_2023 = yearly_data[yearly_data['Year'] == '2023'][metric].values[0]
-            val_2024 = yearly_data[yearly_data['Year'] == '2024'][metric].values[0]
-            pct_change = ((val_2024 / val_2023) - 1) * 100
+        for year in df['Year'].unique():
+            year_df = df[df['Year'] == year]
+            total_amount = year_df['Transaction Amount'].sum()
+            total_profit = year_df['Profit'].sum()
+            total_transactions = year_df['Transaction Count'].sum()
             
-            yoy_data.append({
-                'Metric': metric,
-                '2023 Value': val_2023,
-                '2024 Value': val_2024,
-                'Change %': pct_change
-            })
-        
-        yoy_df = pd.DataFrame(yoy_data)
-        
-        # Create YoY chart
-        fig = go.Figure()
-        
-        for i, row in yoy_df.iterrows():
-            metric = row['Metric']
-            val_2023 = row['2023 Value']
-            val_2024 = row['2024 Value']
-            pct_change = row['Change %']
+            # Distribute across months based on year
+            if year == '2023':
+                valid_months = months[(months >= '2023-05-01') & (months <= '2023-12-01')]
+            elif year == '2024':
+                valid_months = months[(months >= '2024-01-01') & (months <= '2024-12-01')]
+            else:  # 2025
+                valid_months = months[(months >= '2025-01-01') & (months <= '2025-03-01')]
             
-            if metric in ['Revenue', 'Profit']:
-                val_format = '${:,.0f}'
-            else:
-                val_format = '{:,.0f}'
+            # Create monthly distribution with seasonal variations
+            n_months = len(valid_months)
             
-            fig.add_trace(go.Bar(
-                x=['2023', '2024'],
-                y=[val_2023, val_2024],
-                name=metric,
-                text=[val_format.format(val_2023), val_format.format(val_2024)],
-                textposition='auto',
-                marker_color=['#3498DB', '#2ECC71'] if pct_change >= 0 else ['#3498DB', '#E74C3C']
-            ))
-        
-        fig.update_layout(
-            title=f'Year-over-Year Comparison (2023 vs 2024)',
-            barmode='group',
-            xaxis_title='Year',
-            yaxis_title='Value',
-            legend_title='Metric'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Display YoY table
-        col1, col2, col3 = st.columns(3)
-        
-        for i, row in yoy_df.iterrows():
-            metric = row['Metric']
-            val_2023 = row['2023 Value']
-            val_2024 = row['2024 Value']
-            pct_change = row['Change %']
+            # Base distribution with seasonal patterns
+            monthly_factors = np.ones(n_months)
             
-            if i == 0:
-                container = col1
-            elif i == 1:
-                container = col2
-            else:
-                container = col3
+            # Summer peak (Jun-Aug)
+            summer_indices = [i for i, m in enumerate(valid_months) if m.month in [6, 7, 8]]
+            for idx in summer_indices:
+                monthly_factors[idx] *= 1.3
                 
-            with container:
-                st.markdown("<div class='card'>", unsafe_allow_html=True)
-                st.markdown(f"<div class='metric-label'>{metric}</div>", unsafe_allow_html=True)
-                
-                if metric in ['Revenue', 'Profit']:
-                    st.markdown(f"<div class='metric-value'>${val_2024:,.0f}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 (${val_2023:,.0f})</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div class='metric-value'>{val_2024:,.0f}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div style='text-align: center; color: {'green' if pct_change >= 0 else 'red'};'>{pct_change:.1f}% vs 2023 ({val_2023:,.0f})</div>", unsafe_allow_html=True)
-                
-                st.markdown("</div>", unsafe_allow_html=True)
-except Exception as e:
-    st.error(f"Error creating year-over-year comparison: {e}")
+            # Winter holiday peak (Nov-Dec)
+            holiday_indices = [i for
