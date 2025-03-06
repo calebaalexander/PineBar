@@ -572,7 +572,7 @@ def create_profitability_analysis(df):
     Parameters:
     df (pandas.DataFrame): The data to analyze
     """
-st.markdown("<h2 class='sub-header'>Profitability Analysis</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='sub-header'>Profitability Analysis</h2>", unsafe_allow_html=True)
     
     # Profit metrics row
     col1, col2, col3 = st.columns(3)
