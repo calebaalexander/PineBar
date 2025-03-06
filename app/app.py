@@ -99,7 +99,7 @@ metric_sort = st.sidebar.selectbox(
 
 # Function to generate data
 def generate_data(option):
-    """Generate synthetic data for Pine Bar analytics that matches actual revenue
+    """
     
     Parameters:
     option (str): Data period option, one of "2023 Full Year", "2024 Full Year", or "2025 (up to March 5)"
