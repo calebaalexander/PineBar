@@ -377,7 +377,7 @@ def create_category_performance(df):
         st.plotly_chart(fig2, use_container_width=True)
     
     with col2:
-        st.plotly_chart(fig3, use_container_width=True)
+
 
 # Main application header
 st.markdown("<h1 class='main-header'>Pine Bar Analytics Dashboard</h1>", unsafe_allow_html=True)
@@ -481,7 +481,7 @@ st.markdown("*Note: This dashboard uses synthetic data generated for demonstrati
     display_df['Profit Share'] = display_df['Profit Share'].apply(lambda x: f"{x:.1f}%")
     
     cols_to_display = ['Category', 'Revenue', 'Profit', 'Margin', 'Orders', 'Items', 
-                       'Products', 'Avg Order', 'Rev/Item', 'Rev Share', 'Profit Share']
+                      'Products', 'Avg Order', 'Rev/Item', 'Rev Share', 'Profit Share']
     
     st.dataframe(display_df[cols_to_display], use_container_width=True)
 
