@@ -178,7 +178,7 @@ def get_data(option):
             if np.random.random() > 0.3:
                 # Generate realistic metrics
                 total_amount = np.random.randint(10, 15000)
-                total_quantity = np.random.randint(1, int(total_amount / 15) + 1)
+                total_quantity = np.random.randint(1, max(2, int(total_amount / 15) + 1))
                 transaction_count = np.random.randint(1, min(500, total_quantity + 1))
                 
                 # Calculate other metrics based on total
