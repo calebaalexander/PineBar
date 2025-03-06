@@ -99,7 +99,7 @@ metric_sort = st.sidebar.selectbox(
 
 # Function to generate data
 def generate_data(option):
-    """Generate synthetic data for Pine Bar analytics
+    """Generate synthetic data for Pine Bar analytics that matches actual revenue
     
     Parameters:
     option (str): Data period option, one of "2023 Full Year", "2024 Full Year", or "2025 (up to March 5)"
@@ -143,27 +143,86 @@ def generate_data(option):
         np.random.seed(2023)
         n_samples = 150
         year = "2023"
+        
+        # Target revenue from actual business report
+        target_revenue = 303546.72  # $303,546.72 from the business report
+        target_dine_in_sales = 2480.00  # From business report
+        target_net_sales = 281184.00  # From business report
+        target_total_sales = 297051.00  # From business report
+        
     elif option == "2024 Full Year":
         np.random.seed(2024)
         n_samples = 180
         year = "2024"
-    else:  # 2025 data
+        
+        # Projected 10% growth for 2024 (example)
+        target_revenue = 303546.72 * 1.10
+        target_net_sales = 281184.00 * 1.10
+        target_total_sales = 297051.00 * 1.10
+        
+    else:  # 2025 data (partial year)
         np.random.seed(2025)
         n_samples = 70
         year = "2025"
+        
+        # Projected data for partial 2025 (first quarter)
+        target_revenue = 303546.72 * 0.30  # Assuming 30% of annual for first quarter
+        target_net_sales = 281184.00 * 0.30
+        target_total_sales = 297051.00 * 0.30
     
     # Create empty dataframe
     data = []
     
     # Generate synthetic data for each category
+    total_generated_amount = 0
+    category_weights = {
+        "SPIRITS": 0.359,  # 35.9% from the pie chart
+        "FOOD": 0.317,     # 31.7% from the pie chart
+        "COCKTAILS": 0.191, # 19.1% from the pie chart
+        "BEER": 0.069,     # 6.9% from the pie chart (estimated)
+        "WINE": 0.035,     # 3.5% from the pie chart (estimated)
+        "N/A": 0.02,       # 2% from the pie chart (estimated)
+        "Merch": 0.009     # 0.9% from the pie chart (estimated)
+    }
+    
     for category, items in categories.items():
+        # Calculate target amount for this category based on weights
+        category_target = target_total_sales * category_weights[category]
+        
+        # Generate realistic items for this category
+        valid_items = []
         for item in items:
-            # Only include some items to match the number of samples
-            if np.random.random() > 0.3:
-                # Generate realistic metrics
-                total_amount = np.random.randint(500, 25000)
-                total_quantity = np.random.randint(10, int(total_amount / 10) + 1)
-                transaction_count = np.random.randint(5, min(500, total_quantity + 1))
+            if np.random.random() > 0.3:  # Only include some items
+                valid_items.append(item)
+        
+        # Distribute the category target amount among items
+        if valid_items:
+            for i, item in enumerate(valid_items):
+                # Determine the item's share of the category total
+                if category == "FOOD" and item in ["NYE TACOS", "SUNCHOKES", "CHARRED BEETS"]:
+                    # Give higher values to top performers according to chart
+                    item_weight = 0.20  
+                elif category == "COCKTAILS" and item in ["Open Cocktail", "SHOOTER", "COCKTAIL OF THE DAY"]:
+                    item_weight = 0.18
+                elif category == "SPIRITS" and item in ["SAZERAC", "MONTENEGRO", "Bourbon", "ESPOLON"]:
+                    item_weight = 0.15
+                else:
+                    item_weight = 0.05
+                
+                # Normalize weights to ensure we hit our target
+                total_item_weight = sum([item_weight for _ in valid_items])
+                normalized_weight = item_weight / total_item_weight
+                
+                # Generate item amount
+                total_amount = category_target * normalized_weight
+                
+                # Add some randomness but keep around target
+                total_amount = total_amount * (0.9 + 0.2 * np.random.random())
+                total_generated_amount += total_amount
+                
+                # Calculate other metrics
+                total_quantity = np.random.randint(10, int(total_amount / 20) + 1)
+                transaction_count = np.random.randint(5, min(200, total_quantity + 1))
                 
                 # Calculate other metrics based on total
                 zero_priced = np.random.randint(0, int(total_quantity * 0.05) + 1)
@@ -189,8 +248,6 @@ def generate_data(option):
                 if transaction_quantity < 0: transaction_quantity = 0
                 
                 # Cost and profit
-                cost_factor = 0.3 + np.random.random() * 0.3  # Cost between 30-60% of total
-                
                 if category == "BEER":
                     cost_factor = 0.35 + np.random.random() * 0.1  # 35-45%
                 elif category == "COCKTAILS":
@@ -239,6 +296,22 @@ def generate_data(option):
                 })
     
     df = pd.DataFrame(data)
+    
+    # Scale the data to match target revenue
+    current_total = df['Transaction Amount'].sum()
+    scaling_factor = target_total_sales / current_total
+    
+    # Apply scaling
+    columns_to_scale = ['Total Amount', 'Discounted Amount', 'Offered Amount', 
+                        'Loss Amount', 'Returned Amount', 'Transaction Amount',
+                        'Cost', 'Profit']
+    
+    for col in columns_to_scale:
+        df[col] = df[col] * scaling_factor
+    
+    # Recalculate profit margin
+    df['Profit Margin'] = (df['Profit'] / df['Transaction Amount'] * 100)
+    
     return df
 
 # Function to create metrics row
